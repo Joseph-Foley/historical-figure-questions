@@ -26,3 +26,19 @@ print('\nQ: ',
 # model = TFAutoModelForQuestionAnswering.from_pretrained(model_name)
 # tokenizer = AutoTokenizer.from_pretrained(model_name)
 # =============================================================================
+
+#something with more text
+with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\test_text_2.txt') as f:
+    test_text_2 = f.read()
+    
+
+QA_input = {
+'question': "what was Napoleon's first battle?",
+'context': test_text_2
+}
+
+res = nlp(QA_input)
+print('\nQ: ',
+      QA_input['question'],
+      '\nA: ',
+      res['answer'])
