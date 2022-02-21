@@ -4,9 +4,10 @@ demo QA model found here
 https://huggingface.co/deepset/roberta-base-squad2
 """
 
-from transformers import TFAutoModelForQuestionAnswering, AutoTokenizer, pipeline
+from transformers import pipeline #,TFAutoModelForQuestionAnswering, AutoTokenizer
+import time
 
-model_name = "bert-large-uncased-whole-word-masking-finetuned-squad"
+model_name = "deepset/roberta-base-squad2"
 
 # a) Get predictions
 nlp = pipeline('question-answering', model=model_name, tokenizer=model_name)
@@ -27,18 +28,45 @@ print('\nQ: ',
 # tokenizer = AutoTokenizer.from_pretrained(model_name)
 # =============================================================================
 
-#something with more text
-with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\test_text_2.txt') as f:
-    test_text_2 = f.read()
-    
+# =============================================================================
+# #something with more text
+# with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\test_text_2.txt') as f:
+#     test_text_2 = f.read()
+#     
+# 
+# QA_input = {
+# 'question': "who was Napoleon's greatest enemy?",
+# 'context': test_text_2
+# }
+# 
+# time_now = time.time()
+# res = nlp(QA_input)
+# print('\nQ: ',
+#       QA_input['question'],
+#       '\nA: ',
+#       res['answer'])
+# 
+# time_taken = round(time.time() - time_now)
+# print('\ntime_taken: ', time_taken, ' seconds')
+# =============================================================================
+
+#First person, Marcus_Aurelius
+with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\Marcus_Aurelius.txt') as f:
+    test_text_3 = f.read()
+
+test_text_3 = test_text_3.replace(r'\\n', ' ')
 
 QA_input = {
-'question': "what was Napoleon's first battle?",
-'context': test_text_2
+'question': "how to life a good life?",
+'context': test_text_3
 }
 
+time_now = time.time()
 res = nlp(QA_input)
 print('\nQ: ',
       QA_input['question'],
       '\nA: ',
       res['answer'])
+
+time_taken = round(time.time() - time_now)
+print('\ntime_taken: ', time_taken, ' seconds')
