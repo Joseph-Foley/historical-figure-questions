@@ -10,8 +10,11 @@ https://towardsdatascience.com/my-first-twitter-app-1115a327349e
 # =============================================================================
 import tweepy
 import yaml
+import pandas as pd
 from transformers import pipeline #,TFAutoModelForQuestionAnswering, AutoTokenizer
 
+pd.set_option('display.max_columns', 14)
+pd.set_option('display.expand_frame_repr', False)
 
 # =============================================================================
 # CONSTANTS
@@ -34,6 +37,10 @@ def connect_to_twitter_OAuth(CONSUMER_KEY, CONSUMER_SECRET,\
 # =============================================================================
 # EXECUTE
 # =============================================================================
+#load records
+records = pd.read_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records.csv')
+records.to_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records_BACKUP.csv')
+
 #load model
 nlp = pipeline('question-answering', model=MODEL, tokenizer=MODEL)
 
@@ -54,7 +61,8 @@ CONSUMER_KEY = twitter_creds['CONSUMER_KEY']
 CONSUMER_SECRET = twitter_creds['CONSUMER_SECRET']
 
 #Create API object
-api = connect_to_twitter_OAuth()
+api = connect_to_twitter_OAuth(CONSUMER_KEY, CONSUMER_SECRET,\
+                               ACCESS_TOKEN, ACCESS_SECRET)
 
 #Get tweets from mentions
 public_tweets = api.mentions_timeline()#since_id='1508117636026142727')#count=25)
@@ -68,21 +76,37 @@ for tweet in public_tweets:
     link = f'https://twitter.com/{tweet.author.screen_name}/status/{tweet.id_str}'
     print(link)
     links.append(link)
-    
+
+new_records = []   
 #For each tweet, generate a response and reply to them
 for tweet in public_tweets:
-    #get question
+    #get question and link
     question = tweet.text.strip('@AureliusRespon1 ')
+    link = f'https://twitter.com/{tweet.author.screen_name}/status/{tweet.id_str}'
+    
+    #do not respond if already done so
+    if link in records['Link'].values:
+        print(f'\nAlready Answered: {question}')
+        continue
+        
+    else:
+        print(f'Question: {question}')
     
     #generate a response
     QA_input = {'question': question, 'context': context}
     response = nlp(QA_input)
-    print('Response generated')
+    print(f'Response generated: {response["answer"]}')
     
     #reply
-    link = f'https://twitter.com/{tweet.author.screen_name}/status/{tweet.id_str}'
     tweet_reply = api.update_status(status=f'@{tweet.author.screen_name} : ' +\
                                            response['answer'],\
                                     attachment_url=link)
         
     #log that this was replied to
+    new_records.append([tweet.author.screen_name, question, response['answer'], link])
+    
+#save log
+records = pd.concat([records,
+                     pd.DataFrame(new_records, columns=records.columns)])
+
+records.to_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records.csv', index=False)
