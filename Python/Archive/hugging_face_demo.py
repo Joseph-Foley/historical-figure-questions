@@ -89,6 +89,8 @@ questions = [
     'are we even significant at all?',
     ]
 
+questions = ['The greatest remedy for anger?']
+
 time_now = time.time()
 answers = []
 for question in questions:
