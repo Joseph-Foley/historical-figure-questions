@@ -1,1 +1,6 @@
-/Docs
+Docs
+
+# exceptions = reply_records.csv
+!Docs/
+Docs/*
+!Docs/reply_records.csv
