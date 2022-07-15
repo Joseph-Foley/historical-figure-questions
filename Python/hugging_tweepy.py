@@ -11,7 +11,7 @@ https://towardsdatascience.com/my-first-twitter-app-1115a327349e
 import tweepy
 import yaml
 import pandas as pd
-from transformers import pipeline #,TFAutoModelForQuestionAnswering, AutoTokenizer
+from transformers import pipeline 
 
 pd.set_option('display.max_columns', 14)
 pd.set_option('display.expand_frame_repr', False)
@@ -38,20 +38,20 @@ def connect_to_twitter_OAuth(CONSUMER_KEY, CONSUMER_SECRET,\
 # EXECUTE
 # =============================================================================
 #load records
-records = pd.read_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records.csv')
-records.to_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records_BACKUP.csv')
+records = pd.read_csv('../Docs/reply_records.csv')
+records.to_csv('../Docs/reply_records_BACKUP.csv')
 
 #load model
 nlp = pipeline('question-answering', model=MODEL, tokenizer=MODEL)
 
 #load the context document
-with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\Marcus_Aurelius.txt') as f:
+with open('../Docs/Marcus_Aurelius.txt') as f:
     context = f.read()
 
 context = context.replace('\n', ' ')
 
 #load API creds
-with open(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\twitter_creds_MA.yml', 'r') as file:
+with open('../Docs/twitter_creds_MA.yml', 'r') as file:
     twitter_creds =  yaml.safe_load(file)
     
 ##Variables that contains the credentials to access Twitter API
@@ -65,7 +65,7 @@ api = connect_to_twitter_OAuth(CONSUMER_KEY, CONSUMER_SECRET,\
                                ACCESS_TOKEN, ACCESS_SECRET)
 
 #Get tweets from mentions
-public_tweets = api.mentions_timeline()#since_id='1508117636026142727')#count=25)
+public_tweets = api.mentions_timeline()
 tweet_texts = []
 links = []
 for tweet in public_tweets:
@@ -109,4 +109,4 @@ for tweet in public_tweets:
 records = pd.concat([records,
                      pd.DataFrame(new_records, columns=records.columns)])
 
-records.to_csv(r'C:\Users\JF\Desktop\git_projects\historical-figure-questions\Docs\reply_records.csv', index=False)
+records.to_csv('../Docs/reply_records.csv', index=False)
