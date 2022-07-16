@@ -104,39 +104,37 @@ def connectTwitter(yml_path='../Docs/twitter_creds_MA.yml'):
     
     return api
 
+def replyMentions(api, twitter_handle: str, records, context, qa_model):
+    '''
+    Scan mentions timeline and respond to new tweets using the question 
+    answering model to generate the response. Record new tweets.
 
+    Parameters
+    ----------
+    api : api object
+        api object used to interact with twitter
+    twitter_handle : str
+        your/your bot's twitter handle e.g. @AureliusRespon1
+    records : pd.DataFrame
+        Previously recorded tweets
+    context : str
+        text for model to draw answers from
+    qa_model : model object
+        model to answer tweets
 
-# =============================================================================
-# EXECUTE
-# =============================================================================
-if __name__ =='__main__':
-    #load recorded tweets
-    records = loadRecords()
-    
-    #load model and context
-    qa_model, context = loadModelObjects()
-    
-    #connect to twitter api
-    api = connectTwitter()
-    
+    Returns
+    -------
+    new_records : list
+        new tweets in mentions + model's responses
+    '''
     #Get tweets from mentions
     public_tweets = api.mentions_timeline()
-    tweet_texts = []
-    links = []
-    for tweet in public_tweets:
-        print('\n-----', tweet.text)
-        tweet_texts.append(tweet.text)
-        
-        #form url
-        link = f'https://twitter.com/{tweet.author.screen_name}/status/{tweet.id_str}'
-        print(link)
-        links.append(link)
-    
+
     new_records = []   
     #For each tweet, generate a response and reply to them
     for tweet in public_tweets:
         #get question and link
-        question = tweet.text.strip('@AureliusRespon1 ')
+        question = tweet.text.strip(twitter_handle)
         link = f'https://twitter.com/{tweet.author.screen_name}/status/{tweet.id_str}'
         
         #do not respond if already done so
@@ -153,15 +151,48 @@ if __name__ =='__main__':
         print(f'Response generated: {response["answer"]}')
         
         #reply
-        tweet_reply = api.update_status(status=f'@{tweet.author.screen_name} : ' +\
-                                               response['answer'],\
-                                        attachment_url=link)
+        tweet_reply =\
+            api.update_status(status=f'@{tweet.author.screen_name} : ' +\
+                                     response['answer'],\
+                              attachment_url=link)
             
         #log that this was replied to
-        new_records.append([tweet.author.screen_name, question, response['answer'], link])
+        new_records.append([tweet.author.screen_name, question,\
+                            response['answer'], link])
         
-    #save log
+        return new_records
+
+def saveTweets(new_records, records, records_path='../Docs/reply_records.csv'):
+    '''
+    save new tweets (and replies) + previous tweets to a csv
+    '''
+    #append new tweets to previous tweets
     records = pd.concat([records,
                          pd.DataFrame(new_records, columns=records.columns)])
     
-    records.to_csv('../Docs/reply_records.csv', index=False)
+    #save to csv
+    records.to_csv(records_path, index=False)
+
+def main():
+    #load recorded tweets
+    records = loadRecords()
+    
+    #load model and context
+    qa_model, context = loadModelObjects()
+    
+    #connect to twitter api
+    api = connectTwitter()
+        
+    #reply (and record) to tweets in your mentions
+    new_records = replyMentions(api,'@AureliusRespon1 ', records, context,\
+                                qa_model)
+    
+    #save new tweets
+    saveTweets(new_records, records)
+    
+# =============================================================================
+# EXECUTE
+# =============================================================================
+if __name__ =='__main__':
+    main()
+    
